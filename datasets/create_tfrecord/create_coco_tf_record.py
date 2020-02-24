@@ -149,7 +149,7 @@ def create_tf_example(image,
         num_annotations_skipped += 1
         print('Negative bbox coord, skip')
         continue
-      if x + width > image_width or y + height > image_height:
+      if x + width >= image_width or y + height >= image_height:
         num_annotations_skipped += 1
         print('Out-of-boundary bbox coord, skip')
         continue

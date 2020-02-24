@@ -59,7 +59,7 @@ def exceed_boundary(image_info, bbox):
         # It fatal case
         print('img_id:{} get negative size box({}x{})'.format(
             image_info['id'], w, h))
-    if x + w > img_width or y + h > img_height:
+    if x + w >= img_width or y + h >= img_height:
         exceed = True
     return exceed
 
@@ -67,8 +67,8 @@ def shrink_bbox(image_info, bbox):
     img_width, img_height = image_info['width'], image_info['height']
     x, y, width, height = bbox
     if width <= 0 or height <= 0:
-        width = max(0, width)
-        height = max(0, height)
+        width = max(1, width)
+        height = max(1, height)
     if x + width >= img_width: 
         width = min(img_width, x + width) -x -1
     if y + height >= img_height:
