@@ -69,9 +69,9 @@ def shrink_bbox(image_info, bbox):
     if width <= 0 or height <= 0:
         width = max(0, width)
         height = max(0, height)
-    if x + width > img_width: 
+    if x + width >= img_width: 
         width = min(img_width, x + width) -x -1
-    if y + height > img_height:
+    if y + height >= img_height:
         height = min(img_height, y + height) -y -1
     return [x, y, width, height]
 

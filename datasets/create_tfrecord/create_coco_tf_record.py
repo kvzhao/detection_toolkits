@@ -147,9 +147,11 @@ def create_tf_example(image,
       (x, y, width, height) = tuple(object_annotations['bbox'])
       if width <= 0 or height <= 0:
         num_annotations_skipped += 1
+        print('Negative bbox coord, skip')
         continue
       if x + width > image_width or y + height > image_height:
         num_annotations_skipped += 1
+        print('Out-of-boundary bbox coord, skip')
         continue
       xmin.append(float(x) / image_width)
       xmax.append(float(x + width) / image_width)
