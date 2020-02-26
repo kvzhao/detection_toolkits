@@ -67,8 +67,8 @@ def main(args):
             a numpy array [Nx7] where each row contains {imageID,x1,y1,w,h,score,class}
         - Support video in, video out.
     """
-    if args.video_format:
-        video_out = cv2.VideoWriter(args.output_dir, cv2.VideoWriter_fourcc(*'DIVX'), args.fps, (640, 480))
+    #if args.video_format:
+    #   video_out = cv2.VideoWriter(args.output_dir, cv2.VideoWriter_fourcc(*'DIVX'), args.fps, (640, 480))
 
     for img_path in tqdm(image_paths):
         start_time = time.time()
