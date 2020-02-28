@@ -1,5 +1,6 @@
 """Object detector inference
 @kv
+# TODO: cpu & gpu mode switch
 """
 
 import os
