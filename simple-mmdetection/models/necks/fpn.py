@@ -11,7 +11,7 @@ class FPN(nn.Module):
         in_channels,
         out_channels,
         num_outs,
-        activation=None
+        activation=None,
     ):
         super().__init__()
         assert(isinstance(in_channels, list))
@@ -40,7 +40,7 @@ class FPN(nn.Module):
                 out_channels,
                 3,
                 padding=1,
-                activation=activation
+                activation=activation,
             )
             self.fpn_convs.append(fpn_conv)
 
@@ -66,7 +66,7 @@ class FPN(nn.Module):
     def forward(self, inputs):
         assert len(inputs) == len(self.in_channels)
 
-        laterals = [lateral_conv(inputs[i+1])
+        laterals = [lateral_conv(inputs[i + 1])
                     for i, lateral_conv in enumerate(self.lateral_convs)]
 
         used_backbone_levels = len(laterals)

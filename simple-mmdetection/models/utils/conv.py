@@ -20,9 +20,8 @@ class ConvModule(nn.Module):
                  dilation=1,
                  groups=1,
                  bias='auto',
-                 activation=None
+                 activation=None,
                  ):
-        
         super().__init__()
 
         self.conv = conv_layer(
@@ -38,17 +37,8 @@ class ConvModule(nn.Module):
         assert isinstance(activation, nn.Module) or activation is None
         self.activation = activation
 
-    @property
-    def norm(self):
-        return getattr(self, self.norm_name)
-
     def forward(self, x):
         x = self.conv(x)
-        
-        #if self.norm is not None:
-        #    x = self.norm(x)
-        
         if self.activation is not None:
             x = self.activation(x)
-        
         return x

@@ -25,9 +25,9 @@ def main(args):
     dummy_input = torch.randn(1, 3, img_height, img_width, requires_grad=True)
 
     onnx_model = torch.onnx.export(model,
-                                    dummy_input,
-                                    output_model_path,
-                                    export_params=True,)
+                                   dummy_input,
+                                   output_model_path,
+                                   export_params=True,)
     print('Export onnx done.')
 
     # Torch version 1.0.1
