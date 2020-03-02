@@ -1,2 +1,6 @@
 __pycache__
-.pyc
+*.pyc
+.DS_Store
+*.pth
+*.pb
+*.onnx
