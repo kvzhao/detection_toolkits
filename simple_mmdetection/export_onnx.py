@@ -51,8 +51,8 @@ if __name__ == '__main__':
                         help='Path to the exported .onnx')
     parser.add_argument('-mt', '--model_type', default='freeanchor_retinanet_r50_fpn', type=str,
                         help='Type: freeanchor_retinanet_r50_fpn, freeanchor_retinanet_r50_fpn_bn')
-    parser.add_argument('--input_image_width', default=800, type=int)
-    parser.add_argument('--input_image_height', default=480, type=int)
+    parser.add_argument('-w', '--input_image_width', default=800, type=int)
+    parser.add_argument('-h', '--input_image_height', default=480, type=int)
 
     args = parser.parse_args()
     main(args)

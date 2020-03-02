@@ -100,7 +100,7 @@ class RetinaHead(nn.Module):
         cls_score = self.retina_cls(cls_feat)
         bbox_pred = self.retina_reg(reg_feat)
         return cls_score, bbox_pred
-    
+
     def forward(self, features):
         return multi_apply(self._forward_step, features)
 
