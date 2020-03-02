@@ -2,6 +2,8 @@ import os
 import json
 from PIL import Image
 
+from tqdm import tqdm
+
 """
 CrowdHuman Annotation:
     {"ID": "273278,c70ac000e431e2c7",
@@ -54,6 +56,8 @@ def exceed_boundary(image_info, bbox):
     img_width, img_height = image_info['width'], image_info['height']
     x, y, w, h = bbox
     exceed = False
+    if x <= 0 or y <= 0:
+        exceed = True
     if w <= 0 or h <= 0:
         exceed = True
         # It fatal case
@@ -66,6 +70,8 @@ def exceed_boundary(image_info, bbox):
 def shrink_bbox(image_info, bbox):
     img_width, img_height = image_info['width'], image_info['height']
     x, y, width, height = bbox
+    x = max(1, x)
+    y = max(1, y)
     if width <= 0 or height <= 0:
         width = max(1, width)
         height = max(1, height)
@@ -73,6 +79,10 @@ def shrink_bbox(image_info, bbox):
         width = min(img_width, x + width) -x -1
     if y + height >= img_height:
         height = min(img_height, y + height) -y -1
+    width = min(width, img_width)
+    width = max(width, 1)
+    height = min(height, img_height)
+    height = max(height, 1)
     return [x, y, width, height]
 
 def crowdhuman2coco(odgt_path,
@@ -104,7 +114,7 @@ def crowdhuman2coco(odgt_path,
     num_annotation_exceed_boundary = 0
     num_annotation_resize_bbox = 0
 
-    for i in range(record_list):
+    for i in tqdm(range(record_list)):
         file_name = records[i]['ID']+'.jpg'  #这里是字符串格式  eg.273278,600e5000db6370fb
         #image_id = int(records[i]['ID'].split(",")[0]) 这样会导致id唯一，要自己设定
         im = Image.open(img_path + '/' + file_name)
@@ -131,12 +141,16 @@ def crowdhuman2coco(odgt_path,
                 box_type = 'fbox'
             bbox = gt_box[j][box_type]
             # Bounding Box Guardian
-            if exceed_boundary(image, bbox):
-                num_annotation_exceed_boundary += 1
-                if boundary_check:
-                    # TODO: Any cases that cannot fix?
-                    bbox = shrink_bbox(image, bbox)
-                    num_annotation_resize_bbox += 1
+            if boundary_check:
+                is_exceed = True
+                while is_exceed:
+                    is_exceed = exceed_boundary(image, bbox)
+                    if is_exceed:
+                        bbox = shrink_bbox(image, bbox)
+                        num_annotation_resize_bbox += 1
+                    else:
+                        is_exceed = False
+                    num_annotation_exceed_boundary += 1
             ignore = 0
             if "ignore" in gt_box[j]['head_attr']:
                 # ignore head
@@ -195,7 +209,7 @@ def main(args):
        args.output,
        box_type=args.box_type,
        skip_mask=args.skip_mask,
-       boundary_check=args.boundary_check)
+       boundary_check=True)
 
 if __name__ == '__main__':
     import argparse
