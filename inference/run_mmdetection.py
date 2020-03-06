@@ -14,16 +14,17 @@ from tqdm import tqdm
 
 import time
 
+import mmcv
+
 from mmdet.apis import init_detector
 from mmdet.apis import inference_detector
 from mmdet.apis import show_result
-import mmcv
 
 
 def plot_and_save_bboxes(img_arr, bboxes, out_path):
     img_h, img_w, _ = img_arr.shape
     # Create figure and axes
-    fig,ax = plt.subplots(1)
+    fig, ax = plt.subplots(1)
     ax.imshow(img_arr.astype(np.uint8))
     for bbox in bboxes:
         bbox[0] = bbox[0] * img_h
@@ -46,12 +47,69 @@ def plot_and_save_bboxes(img_arr, bboxes, out_path):
     plt.savefig(out_path)
     plt.clf()
 
+
+def xyxy2xywh(bbox):
+    # bbox is numpy array
+    _bbox = bbox.tolist()
+    return [
+        _bbox[0],
+        _bbox[1],
+        _bbox[2] - _bbox[0] + 1,
+        _bbox[3] - _bbox[1] + 1,
+    ]
+
+
+def results2json(image_file_names, results, outfile_prefix):
+    """Dump the detection results to a json file.
+
+    There are 3 types of results: proposals, bbox predictions, mask
+    predictions, and they have different data types. This method will
+    automatically recognize the type, and dump them to json files.
+
+    Args:
+        results (list[list | tuple | ndarray]): Testing results of the
+            dataset.
+        outfile_prefix (str): The filename prefix of the json files. If the
+            prefix is "somepath/xxx", the json files will be named
+            "somepath/xxx.bbox.json", "somepath/xxx.segm.json",
+            "somepath/xxx.proposal.json".
+
+    Returns:
+        dict[str: str]: Possible keys are "bbox", "segm", "proposal", and
+            values are corresponding filenames.
+    """
+
+    def _det2json(filenames, results):
+        json_results = []
+        for img_id, (img_file, result) in enumerate(zip(filenames, results)):
+            for label in range(len(result)):
+                bboxes = result[label]
+                for i in range(bboxes.shape[0]):
+                    data = dict()
+                    data['image_id'] = img_id
+                    data['bbox'] = xyxy2xywh(bboxes[i])
+                    data['score'] = float(bboxes[i][4])
+                    data['category_id'] = 1
+                    json_results.append(data)
+        return json_results
+
+    result_files = dict()
+    if isinstance(results[0], list):
+        json_results = _det2json(image_file_names, results)
+        result_files['bbox'] = '{}.{}.json'.format(outfile_prefix, 'bbox')
+        result_files['proposal'] = '{}.{}.json'.format(
+            outfile_prefix, 'bbox')
+        mmcv.dump(json_results, result_files['bbox'])
+    else:
+        raise TypeError('invalid type of results')
+    return result_files
+
+
 def main(args):
 
     if args.image_dir is None:
         raise ValueError('No input!')
     image_filenames = [f for f in os.listdir(args.image_dir) if isfile(join(args.image_dir, f))]
-    image_paths = [join(args.image_dir, f) for f in image_filenames]
 
     if not os.path.exists(args.output_dir) and not args.video_output:
         os.makedirs(args.output_dir)
@@ -61,31 +119,38 @@ def main(args):
 
     model = init_detector(config_file, checkpoint_file, device='cuda:0')
 
-    inference_times = []
+    inference_time = 0.0
     """TODO:
         - Do not save images anymore. (need cooperate with viewer)
-        - Save inference results as list of dict to numpy 
+        - Save inference results as list of dict to numpy
             a numpy array [Nx7] where each row contains {imageID,x1,y1,w,h,score,class}
         - Support video in, video out.
     """
-    #if args.video_format:
+    # if args.video_format:
     #   video_out = cv2.VideoWriter(args.output_dir, cv2.VideoWriter_fourcc(*'DIVX'), args.fps, (640, 480))
 
-    for img_path in tqdm(image_paths):
+    results = []
+
+    for img_file_name in tqdm(image_filenames):
         start_time = time.time()
+        img_path = join(args.image_dir, img_file_name)
         result = inference_detector(model, img_path)
         end_time = time.time()
-        inference_times.append(end_time - start_time)
+        inference_time += (end_time - start_time)
         output_path = join(args.output_dir, os.path.basename(img_path))
-        #plot_and_save_bboxes(raw_img, ret['detection_boxes'], output_path)
-        #print(model.CLASSES)
         if args.video_output:
-            img = show_result(img_path, result, [model.CLASSES], out_file=None, show=False)
-            video_out.write(img)
+            pass
+            # img = show_result(img_path, result, [model.CLASSES], out_file=None, show=False)
+            # video_out.write(img)
         else:
             show_result(img_path, result, [model.CLASSES], out_file=output_path, show=False)
 
-    print(np.mean(inference_times))
+        results.append(result)
+
+    results2json(image_filenames, results, os.path.basename(args.config_path).rstrip('.config'))
+
+    print(inference_time / len(image_filenames))
+
 
 if __name__ == '__main__':
     import argparse
