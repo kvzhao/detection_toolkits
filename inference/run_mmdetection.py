@@ -114,7 +114,7 @@ def results2json(image_file_names, results, outfile_prefix):
             outfile_prefix, 'bbox')
         mmcv.dump(json_results, result_files['bbox'])
     elif isinstance(results[0], np.ndarray):
-        json_results = _proposal2json(results)
+        json_results = _proposal2json(image_file_names, results)
         result_files['proposal'] = '{}.{}.json'.format(
             outfile_prefix, 'proposal')
         mmcv.dump(json_results, result_files['proposal'])
@@ -156,18 +156,19 @@ def main(args):
         end_time = time.time()
         inference_time += (end_time - start_time)
         output_path = join(args.output_dir, os.path.basename(img_path))
-        if args.video_output:
-            pass
-            # img = show_result(img_path, result, [model.CLASSES], out_file=None, show=False)
-            # video_out.write(img)
-        else:
+
+        #if args.video_output:
+        #    pass
+        #    # img = show_result(img_path, result, [model.CLASSES], out_file=None, show=False)
+        #    # video_out.write(img)
+        if not args.no_image:
             show_result(img_path, result, [model.CLASSES], out_file=output_path, show=False)
 
         results.append(result)
 
-    results2json(image_filenames, results, os.path.basename(args.config_path).rstrip('.config'))
-
-    print(inference_time / len(image_filenames))
+    prediction_output_path = os.path.join(args.output_dir, os.path.basename(args.config_path).rstrip('.py'))
+    results2json(image_filenames, results, prediction_output_path)
+    print('Average inference time: {} ms'.format(inference_time / len(image_filenames)))
 
 
 if __name__ == '__main__':
@@ -178,6 +179,7 @@ if __name__ == '__main__':
     parser.add_argument('-id', '--image_dir', type=str, default=None, help='Input image directory')
     parser.add_argument('-od', '--output_dir', type=str, default=None, help='Output directory')
     parser.add_argument('-vout', '--video_output', action='store_true', help='Use video as output format')
+    parser.add_argument('--no-image', action='store_true', help='If set, the predicted images will not be saved.')
     parser.add_argument('--fps', type=int, default=6, help='FPS of output video')
     args = parser.parse_args()
     main(args)
