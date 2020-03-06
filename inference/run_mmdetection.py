@@ -93,6 +93,19 @@ def results2json(image_file_names, results, outfile_prefix):
                     json_results.append(data)
         return json_results
 
+    def _proposal2json(filenames, results):
+        json_results = []
+        for img_id, (img_file, result) in enumerate(zip(filenames, results)):
+            bboxes = result
+            for i in range(bboxes.shape[0]):
+                data = dict()
+                data['image_id'] = img_id
+                data['bbox'] = xyxy2xywh(bboxes[i])
+                data['score'] = float(bboxes[i][4])
+                data['category_id'] = 1
+                json_results.append(data)
+        return json_results
+
     result_files = dict()
     if isinstance(results[0], list):
         json_results = _det2json(image_file_names, results)
@@ -100,6 +113,11 @@ def results2json(image_file_names, results, outfile_prefix):
         result_files['proposal'] = '{}.{}.json'.format(
             outfile_prefix, 'bbox')
         mmcv.dump(json_results, result_files['bbox'])
+    elif isinstance(results[0], np.ndarray):
+        json_results = _proposal2json(results)
+        result_files['proposal'] = '{}.{}.json'.format(
+            outfile_prefix, 'proposal')
+        mmcv.dump(json_results, result_files['proposal'])
     else:
         raise TypeError('invalid type of results')
     return result_files
