@@ -1,3 +1,6 @@
+import os
+import sys
+from os.path import join, basename
 
 import pandas as pd
 import numpy as np
@@ -10,6 +13,7 @@ from pycocotools.coco import COCO
 #from nptools.np_box_list import BoxList
 from utils import xywh2xyxy
 from utils import xyxy2xywh
+from utils import get_files
 
 class DataframeFields:
   file_name = 'file_name'
@@ -24,8 +28,6 @@ class DataframeFields:
   instance_name = 'instance_name'
   img_size = 'img_size'
   img_aspect_ratio = 'img_aspect_ratio'
-  landmarks = 'landmarks'
-  local_landmarks = 'local_landmarks'
 
 Fields = DataframeFields
 
@@ -62,6 +64,13 @@ def compute_img_aspect_ratio(df):
 def compute_bbox_overlap(df):
   df[Fields.bbox_overlap] = df.apply(
     lambda x: calc_bboxes_overlap_per_image(x.bboxes), axis=1)
+  return df
+
+
+def compute_bbox_per_image(df):
+  df['num_bbox'] = df.apply(
+    lambda x: len(x.bboxes), axis=1
+  )
   return df
 
 
@@ -150,9 +159,10 @@ def merge(df1, df2):
   return df
 
 
-def dump_coco(df, path):
-  # dump dataframe as coco annotation json
-  # This function is really slow
+def convert_labelme_to_coco(input_dir, output_path):
+  json_file_paths = get_files(input_dir, ('.json'))
+  # json_file_names = [basename(f) for f in json_file_paths]
+  print('Load {} files from {}'.format(len(json_file_paths), input_dir))
   json_dict = {
       'images': [],
       'annotations': [],
@@ -161,6 +171,102 @@ def dump_coco(df, path):
           'supercategory': 'face',
           'id': 1,
           'name': 'face',
+        }
+      ],
+  }
+  image_id = 1
+  bbox_id = 1
+  ignore = 0 
+  category_id = 1
+  image = {}
+
+  for json_file_path in json_file_paths:
+    with open(json_file_path, 'r') as fp:
+      anno = json.load(fp)
+
+    img_height = anno['imageHeight']
+    img_width = anno['imageWidth']
+    file_name = anno['imagePath']
+
+    image_info = {
+      'file_name': file_name,
+      'height': img_height,
+      'width': img_width,
+      'id': image_id,
+    }
+    json_dict['images'].append(image_info)
+
+    for shape in anno['shapes']:
+      p0, p1 = shape['points']
+      bbox = xyxy2xywh([p0[0], p0[1], p1[0], p1[1]])
+      _, _, w, h = bbox
+      annotation = {
+        'area': w * h,
+        'iscrowd': ignore,
+        'image_id': image_id,
+        'bbox': bbox,
+        'category_id': category_id,
+        'id': bbox_id,
+        'ignore': ignore,
+        'segmentation': [],
+      }
+      json_dict['annotations'].append(annotation)
+      bbox_id += 1
+    image_id += 1
+  with open(output_path, 'w') as json_fp:
+      json_str = json.dumps(json_dict)
+      json_fp.write(json_str)
+  print('Done, save to {}'.format(output_path))
+
+def dump_labelme(df, output_dir):
+
+  os.makedirs(output_dir, exist_ok=True)
+  # directly save results to output folder
+  for _, row in df.iterrows():
+
+    file_name = row['file_name']
+    bboxes = row['bboxes']
+    img_width = row['width']
+    img_height = row['height']
+
+    _template = {
+      "version": "1.0.0",
+      "flags": {},
+      "shapes": [],
+      "imagePath": file_name,
+      "imageData": None,
+      "imageHeight": img_height,
+      "imageWidth": img_width,
+    }
+
+    for bbox in bboxes:
+      x1, y1, x2, y2 = xywh2xyxy(bbox)
+      _template['shapes'].append(
+        {
+          'label': 'person',
+          'points': [[x1, y1], [x2, y2]],
+          "group_id": None,
+          "shape_type": "rectangle",
+          "flags": {},
+        }
+      )
+    output_filename = join(output_dir, file_name.rstrip('.jpg') + '.json')
+    with open(output_filename, 'w') as json_fp:
+      json_str = json.dumps(_template)
+      json_fp.write(json_str)
+
+
+def dump_coco(df, path):
+  # dump dataframe as coco annotation json
+  # This function is really slow
+  json_dict = {
+      'images': [],
+      'annotations': [],
+      'categories': [
+        {
+          'supercategory': 'person',
+          'id': 1,
+          'name': 'person',
         }
       ],
   }
