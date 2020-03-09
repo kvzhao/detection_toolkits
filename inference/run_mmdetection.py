@@ -6,6 +6,12 @@
 import os
 import sys
 import cv2
+import json
+import struct
+
+# pip install imagesize
+import imagesize
+
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy as np
@@ -59,6 +65,18 @@ def xyxy2xywh(bbox):
     ]
 
 
+def format_result(result):
+    outputs = []
+    for label in range(len(result)):
+        bboxes = result[label]
+        for i in range(bboxes.shape[0]):
+            data = dict()
+            data['bbox'] = xyxy2xywh(bboxes[i])
+            data['score'] = float(bboxes[i][4])
+            data['category_id'] = 1
+            outputs.append(data)
+    return outputs
+
 def results2json(image_file_names, results, outfile_prefix):
     """Dump the detection results to a json file.
 
@@ -93,6 +111,7 @@ def results2json(image_file_names, results, outfile_prefix):
                     json_results.append(data)
         return json_results
 
+    """
     def _proposal2json(filenames, results):
         json_results = []
         for img_id, (img_file, result) in enumerate(zip(filenames, results)):
@@ -105,21 +124,24 @@ def results2json(image_file_names, results, outfile_prefix):
                 data['category_id'] = 1
                 json_results.append(data)
         return json_results
-
+    """
     result_files = dict()
     if isinstance(results[0], list):
+        print('LIST')
         json_results = _det2json(image_file_names, results)
         result_files['bbox'] = '{}.{}.json'.format(outfile_prefix, 'bbox')
         result_files['proposal'] = '{}.{}.json'.format(
             outfile_prefix, 'bbox')
         mmcv.dump(json_results, result_files['bbox'])
+    else:
+        raise TypeError('invalid type of results')
+    """
     elif isinstance(results[0], np.ndarray):
         json_results = _proposal2json(image_file_names, results)
         result_files['proposal'] = '{}.{}.json'.format(
             outfile_prefix, 'proposal')
         mmcv.dump(json_results, result_files['proposal'])
-    else:
-        raise TypeError('invalid type of results')
+    """
     return result_files
 
 
@@ -147,7 +169,23 @@ def main(args):
     # if args.video_format:
     #   video_out = cv2.VideoWriter(args.output_dir, cv2.VideoWriter_fourcc(*'DIVX'), args.fps, (640, 480))
 
-    results = []
+    #results = []
+    # COCO annotation container
+    json_dict = {
+        'images': [],
+        'annotations': [],
+        'categories': [
+            {
+            'supercategory': 'person',
+            'id': 1,
+            'name': 'person',
+            }
+        ],
+    }
+    image_id = 1
+    bbox_id = 1
+    ignore = 0 
+    category_id = 1
 
     for img_file_name in tqdm(image_filenames):
         start_time = time.time()
@@ -157,6 +195,36 @@ def main(args):
         inference_time += (end_time - start_time)
         output_path = join(args.output_dir, os.path.basename(img_path))
 
+        formated_result = format_result(result)
+
+        img_width, img_height = imagesize.get(img_path)
+    
+        image_info = {
+            'file_name': img_file_name,
+            'height': img_height,
+            'width': img_width,
+            'id': image_id,
+            }
+        json_dict['images'].append(image_info)
+
+        for res in formated_result:
+            bbox = res['bbox']
+            category_id = res['category_id']
+            xmin, ymin, w, h = bbox
+
+            annotation = {
+                'area': w * h,
+                'iscrowd': ignore,
+                'image_id': image_id,
+                'bbox': bbox,
+                'category_id': category_id,
+                'id': bbox_id,
+                'ignore': ignore,
+                'segmentation': [],
+                }
+            json_dict['annotations'].append(annotation)
+            bbox_id += 1
+        image_id += 1
         #if args.video_output:
         #    pass
         #    # img = show_result(img_path, result, [model.CLASSES], out_file=None, show=False)
@@ -164,10 +232,12 @@ def main(args):
         if not args.no_image:
             show_result(img_path, result, [model.CLASSES], out_file=output_path, show=False)
 
-        results.append(result)
-
-    prediction_output_path = os.path.join(args.output_dir, os.path.basename(args.config_path).rstrip('.py'))
-    results2json(image_filenames, results, prediction_output_path)
+        #results.append(result)
+    prediction_output_path = os.path.join(args.output_dir, os.path.basename(args.config_path).rstrip('.py')) + '.json'
+    with open(prediction_output_path, 'w') as json_fp:
+        json_str = json.dumps(json_dict)
+        json_fp.write(json_str)
+    #results2json(image_filenames, results, prediction_output_path)
     print('Average inference time: {} ms'.format(inference_time / len(image_filenames)))
 
 
