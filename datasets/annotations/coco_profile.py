@@ -3,6 +3,7 @@ import os
 import sys
 from os.path import join
 from os.path import basename
+import numpy as np
 
 import dftools
 
@@ -11,7 +12,9 @@ def main(args):
     df = dftools.from_coco(args.groundtruth_jsonfile_path,
                            args.detection_jsonfile_path)
 
+    df = dftools.compute_bbox_per_image(df)
     print(df)
+    print(np.mean(df.num_bbox), np.min(df.num_bbox), np.max(df.num_bbox))
 
 
 if __name__ == '__main__':

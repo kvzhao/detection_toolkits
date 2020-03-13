@@ -65,14 +65,17 @@ def xyxy2xywh(bbox):
     ]
 
 
-def format_result(result):
+def format_result(result, conf=0.9):
     outputs = []
     for label in range(len(result)):
         bboxes = result[label]
         for i in range(bboxes.shape[0]):
+            score = float(bboxes[i][4])
+            if score < conf:
+                continue
             data = dict()
             data['bbox'] = xyxy2xywh(bboxes[i])
-            data['score'] = float(bboxes[i][4])
+            data['score'] = score
             data['category_id'] = 1
             outputs.append(data)
     return outputs
@@ -195,7 +198,7 @@ def main(args):
         inference_time += (end_time - start_time)
         output_path = join(args.output_dir, os.path.basename(img_path))
 
-        formated_result = format_result(result)
+        formated_result = format_result(result, conf=args.confidence)
 
         img_width, img_height = imagesize.get(img_path)
     
@@ -238,7 +241,7 @@ def main(args):
         json_str = json.dumps(json_dict)
         json_fp.write(json_str)
     #results2json(image_filenames, results, prediction_output_path)
-    print('Average inference time: {} ms'.format(inference_time / len(image_filenames)))
+    print('Average inference time: {} ms'.format(1000.0* (inference_time / len(image_filenames))))
 
 
 if __name__ == '__main__':
@@ -248,6 +251,7 @@ if __name__ == '__main__':
     parser.add_argument('-md', '--model_dir', type=str, default=None, help='Path to the model folder')
     parser.add_argument('-id', '--image_dir', type=str, default=None, help='Input image directory')
     parser.add_argument('-od', '--output_dir', type=str, default=None, help='Output directory')
+    parser.add_argument('--confidence', type=float, default=0.9, help='')
     parser.add_argument('-vout', '--video_output', action='store_true', help='Use video as output format')
     parser.add_argument('--no-image', action='store_true', help='If set, the predicted images will not be saved.')
     parser.add_argument('--fps', type=int, default=6, help='FPS of output video')

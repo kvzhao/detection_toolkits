@@ -34,12 +34,6 @@ def draw_bbox(img, bbox, conf=None, color='red'):
   return img
 
 
-def draw_landmark(img, landmarks_list):
-  #for landmark_num, xy in enumerate(landmarks_list, start = 1):
-  for i in range(0, 10, 2):
-    cv2.circle(img, (landmarks_list[i], landmarks_list[i+1]), 2, (168, 0, 20), -1)
-  return img
-
 def xywh2xyxy(bbox):
   return [bbox[0], bbox[1], bbox[0]+bbox[2], bbox[1]+bbox[3]]
 

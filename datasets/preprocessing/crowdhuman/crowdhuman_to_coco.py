@@ -141,6 +141,7 @@ def crowdhuman2coco(odgt_path,
                 box_type = 'fbox'
             bbox = gt_box[j][box_type]
             # Bounding Box Guardian
+            timeout_counter = 0
             if boundary_check:
                 is_exceed = True
                 while is_exceed:
@@ -148,9 +149,14 @@ def crowdhuman2coco(odgt_path,
                     if is_exceed:
                         bbox = shrink_bbox(image, bbox)
                         num_annotation_resize_bbox += 1
+                        timeout_counter += 1
                     else:
                         is_exceed = False
                     num_annotation_exceed_boundary += 1
+                    if timeout_counter > 10:
+                        is_exceed = False
+                        print('Timeout, skip')
+                        continue
             ignore = 0
             if "ignore" in gt_box[j]['head_attr']:
                 # ignore head
