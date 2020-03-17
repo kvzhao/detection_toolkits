@@ -19,6 +19,7 @@ def main(args):
 
     # running evaluation
     cocoEval = COCOeval(cocoGt, cocoDt, 'bbox')
+    cocoEval.params.maxDets = [10, 100, 1000]
     cocoEval.evaluate()
     cocoEval.accumulate()
     cocoEval.summarize()
