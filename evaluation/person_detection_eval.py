@@ -48,7 +48,6 @@ def PerImageSummarize(cocoEval):
         #    len(dtm), np.sum(dtm != 0.0) / len(dtm)))
         #print('#gt = {}, R = {}'.format(
         #    len(gtm), np.sum(dtm != 0.0) / len(gtm)))
-        print(np.sum(gtm != 0.0), np.sum(dtm != 0.0))
         num_tp = np.sum(dtm != 0.0)
         num_fp = np.sum(dtm == 0.0)
         num_dt = len(dtm)
