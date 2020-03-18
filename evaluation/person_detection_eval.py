@@ -70,6 +70,8 @@ def PerImageSummarize(cocoEval):
     print('Mean Precision: {}'.format(per_image_report.precision.mean()))
     print('Mean Recall: {}'.format(per_image_report.recall.mean()))
     print('FPPI: {}'.format(per_image_report.num_fp.sum() / len(per_image_report)))
+    print('Missing Rate: {}%'.format(
+        100.0 * (per_image_report.num_miss.sum() / per_image_report.num_gt.sum())))
 
     # TODO: Density report
     num_bbox_ranges = [[0, 10], [10, 50], [50, 100], [100, 300], [300, 1000]]
