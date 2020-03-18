@@ -77,13 +77,16 @@ def PerImageSummarize(cocoEval):
 
     writer = MarkdownTableWriter()
     writer.table_name = 'PR & Density'
-    writer.headers = ['#person', 'Precision', 'Recall']
+    writer.headers = ['#person', 'Precision', 'Recall', 'FPPI', 'MR%']
     values = []
     for nb in num_bbox_ranges:
         nb_str = '{} ~ {}'.format(nb[0], nb[1])
-        p = per_image_report[per_image_report.num_gt.between(nb[0], nb[1])].precision.mean()
-        r = per_image_report[per_image_report.num_gt.between(nb[0], nb[1])].recall.mean()
-        values.append([nb_str, p, r])
+        sub = per_image_report[per_image_report.num_gt.between(nb[0], nb[1])]
+        p = sub.precision.mean()
+        r = sub.recall.mean()
+        fppi = sub.num_fp.sum() / len(sub)
+        mr = 100.0 * (sub.num_miss.sum() / sub.num_gt.sum())
+        values.append([nb_str, p, r, fppi, mr])
     writer.value_matrix = values
     writer.margin = 1
     writer.write_table()
