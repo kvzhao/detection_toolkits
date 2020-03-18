@@ -114,6 +114,11 @@ def crowdhuman2coco(odgt_path,
     num_annotation_exceed_boundary = 0
     num_annotation_resize_bbox = 0
 
+    # add category by hand
+    categories['person'] = 1
+    if args.add_head:
+        categories['head'] = 2
+
     for i in tqdm(range(record_list)):
         file_name = records[i]['ID']+'.jpg'  #这里是字符串格式  eg.273278,600e5000db6370fb
         #image_id = int(records[i]['ID'].split(",")[0]) 这样会导致id唯一，要自己设定
@@ -137,7 +142,7 @@ def crowdhuman2coco(odgt_path,
                 categories[category] = new_id
                 print('Add new category: {}'.format(category))
             category_id = categories[category]
-            if box_type not in ['fbox', 'vbox', 'hbox']:
+            if box_type not in ['fbox', 'vbox']:
                 box_type = 'fbox'
             bbox = gt_box[j][box_type]
             # Bounding Box Guardian
@@ -168,6 +173,7 @@ def crowdhuman2coco(odgt_path,
             """TODO @kv
               Whether seperate head and body into two class?
             """
+
             annotation = {
                 'area': bbox[2] * bbox[3],
                 'iscrowd': ignore,
@@ -184,6 +190,23 @@ def crowdhuman2coco(odgt_path,
             json_dict['annotations'].append(annotation)
             bbox_id += 1
             num_annotation += 1
+
+            if args.add_head:
+                head_bbox = gt_box[j]['hbox']
+                annotation = {
+                    'area': head_bbox[2] * head_bbox[3],
+                    'iscrowd': ignore,
+                    'image_id': image_id,
+                    'bbox': head_bbox,
+                    'category_id': categories['head'],
+                    'id': bbox_id,
+                    'ignore': ignore,
+                    'segmentation': [],
+                }
+                json_dict['annotations'].append(annotation)
+                bbox_id += 1
+                num_annotation += 1
+
         image_id += 1
 
     #下面这一步，对所有数据，只需执行一次，也就是对categories里的类别进行统计。
@@ -223,7 +246,8 @@ if __name__ == '__main__':
     parser.add_argument('-a', '--annotation', type=str, default=None, help='Path to the odgt file')
     parser.add_argument('-i', '--image', type=str, default=None, help='Path to the image folder')
     parser.add_argument('-o', '--output', type=str, default=None, help='Path to the coco json file')
-    parser.add_argument('-bt', '--box_type', type=str, default='fbox', help='Type of bounding box')
+    parser.add_argument('-bt', '--box_type', type=str, default='fbox', help='Type of bounding box: fbox, vbox')
+    parser.add_argument('--add_head', action='store_true', help='Add class: head')
     parser.add_argument('--skip_mask', action='store_true',
         help='Set true if the flag is given, skip when annotation is mask')
     parser.add_argument('-bc', '--boundary_check', action='store_true',
