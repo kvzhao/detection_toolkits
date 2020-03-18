@@ -22,17 +22,61 @@ def min_bbox_size(annos):
     return min_area
 
 
-def counter(Gt, Dt):
-    # temp function
-    for img_id in Gt.getImgIds():
-        gt = Gt.loadAnns(Gt.getAnnIds(img_id))
-        dt = Dt.loadAnns(Dt.getAnnIds(img_id))
-        num_gt = len(gt)
-        num_dt = len(dt)
-        print(img_id, num_gt - num_dt, num_gt)
+def PerImageSummarize(cocoEval):
+    """
+      - FPPI
+      - MR
+      - Density classification
 
-        print(np.sqrt(min_bbox_size(gt)))
+      order [T, R, K, A, M]
+        T: [.5:.05:.95] T=10 IoU thresholds for evaluatio
+        R: [0:.01:1] R=101 recall thresholds for evaluation
+        K: category
+        A: areaRng    - [...] A=4 object area ranges for evaluation
+        M: maxDets    - [1 10 100] M=3 thresholds on max detections per image
+    """
+    # per
+    iou_05 = 0
 
+    per_image_precision_recall = {}
+
+    # NOTE: WARNING Hard-coded
+    offset = len(cocoEval.params.catIds) + len(cocoEval.params.areaRng) - 1
+
+    for eval_img in cocoEval.evalImgs[::offset]:
+        # IoU = 0.5 index == 0
+        img_id = eval_img['image_id']
+        gtm = eval_img['gtMatches'][iou_05]
+        dtm = eval_img['dtMatches'][iou_05]
+
+        #print('#det = {}, P = {}'.format(
+        #    len(dtm), np.sum(dtm != 0.0) / len(dtm)))
+        #print('#gt = {}, R = {}'.format(
+        #    len(gtm), np.sum(dtm != 0.0) / len(gtm)))
+        print(np.sum(gtm != 0.0), np.sum(dtm != 0.0))
+        num_tp = np.sum(dtm != 0.0)
+        num_fp = np.sum(dtm == 0.0)
+        num_dt = len(dtm)
+        num_gt = len(gtm)
+        per_image_precision_recall[img_id] = {
+            'num_tp': num_tp,
+            'num_fp': num_fp,
+            'precision': num_tp / num_dt,
+            'recall': np.sum(gtm != 0.0) / num_gt,
+            'num_gt': num_gt,
+            'num_dt': num_dt,
+            'num_miss': num_gt - num_tp,
+        }
+
+    per_image_report = pd.DataFrame.from_dict(
+        per_image_precision_recall, orient='index')
+
+    print(per_image_report)
+    print('Mean Precision: {}'.format(per_image_report.precision.mean()))
+    print('Mean Recall: {}'.format(per_image_report.recall.mean()))
+    print('FPPI: {}'.format(per_image_report.num_fp.sum() / len(per_image_report)))
+
+    return per_image_report
 
 
 def main(args):
@@ -40,32 +84,20 @@ def main(args):
     cocoGt = COCO(args.groundtruth_jsonfile_path)
     cocoDt = cocoGt.loadRes(args.detection_jsonfile_path)
 
-    counter(cocoGt, cocoDt)
-
-    #print(cocoGt.getAnnIds(cocoGt.getImgIds()))
 
     # running evaluation
     cocoEval = COCOeval(cocoGt, cocoDt, 'bbox')
     # cocoEval.params.imgIds = 1
-    cocoEval.params.maxDets = [10, 100, 1000]
     cocoEval.evaluate()
     cocoEval.accumulate()
     cocoEval.summarize()
 
-    #print(cocoEval.eval)
+    report = PerImageSummarize(cocoEval)
 
-    for eval_img in cocoEval.evalImgs:
-        print(type(eval_img))
-        print(eval_img['image_id'], eval_img['aRng'])
-        #print(eval_img['dtMatches'], eval_img['gtMatches'])
-        gtm = eval_img['gtMatches'][0]
-        dtm = eval_img['dtMatches'][0]
-        #for dtm in eval_img['dtMatches']:
-        #    print(len(dtm))
-        print('#det = {}, P = {}'.format(
-            len(dtm), np.sum(dtm != 0.0) / len(dtm)))
-        print('#gt = {}, R = {}'.format(
-            len(gtm), np.sum(dtm != 0.0) / len(gtm)))
+    if args.output_path is None:
+        report.to_csv('per_image_report.csv')
+    else:
+        report.to_csv(args.output_path)
 
 
 if __name__ == '__main__':
