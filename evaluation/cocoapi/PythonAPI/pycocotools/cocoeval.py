@@ -467,7 +467,7 @@ class COCOeval:
             stats[5] = _summarize(0, iouThr=.75, maxDets=self.params.maxDets[2])
 
             # Size Effect
-            stats[6] = _summarize(0, maxDets=self.params.maxDets[1])
+            stats[6] = _summarize(0, maxDets=self.params.maxDets[2])
             stats[7] = _summarize(1, iouThr=.5, areaRng='xsmall', maxDets=self.params.maxDets[2])
             stats[8] = _summarize(1, iouThr=.5, areaRng='small', maxDets=self.params.maxDets[2])
             stats[9] = _summarize(1, iouThr=.5, areaRng='medium', maxDets=self.params.maxDets[2])
