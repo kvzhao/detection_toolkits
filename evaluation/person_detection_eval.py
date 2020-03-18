@@ -13,13 +13,8 @@ import pandas as pd
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 
+from pytablewriter import MarkdownTableWriter
 
-def min_bbox_size(annos):
-    min_area = 1000000
-    for anno in annos:
-        if anno['area'] < min_area:
-            min_area = anno['area']
-    return min_area
 
 
 def PerImageSummarize(cocoEval):
@@ -75,6 +70,22 @@ def PerImageSummarize(cocoEval):
     print('Mean Precision: {}'.format(per_image_report.precision.mean()))
     print('Mean Recall: {}'.format(per_image_report.recall.mean()))
     print('FPPI: {}'.format(per_image_report.num_fp.sum() / len(per_image_report)))
+
+    # TODO: Density report
+    num_bbox_ranges = [[0, 10], [10, 50], [50, 100], [100, 300], [300, 1000]]
+
+    writer = MarkdownTableWriter()
+    writer.table_name = 'PR & Density'
+    writer.headers = ['#person', 'Precision', 'Recall']
+    values = []
+    for nb in num_bbox_ranges:
+        nb_str = '{} ~ {}'.format(nb[0], nb[1])
+        p = per_image_report[per_image_report.num_gt.between(nb[0], nb[1])].precision.mean()
+        r = per_image_report[per_image_report.num_gt.between(nb[0], nb[1])].recall.mean()
+        values.append([nb_str, p, r])
+    writer.value_matrix = values
+    writer.margin = 1
+    writer.write_table()
 
     return per_image_report
 
