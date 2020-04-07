@@ -40,10 +40,14 @@ class DetResMerge():
         self.outfile = outfile
         self.imgext = imgext
         self.code = code
-        self.imgpath = os.path.join(self.basepath, 'PANDA_IMAGE')
-        self.respath = os.path.join(self.basepath, 'resJSONs', resfile)
-        self.splitannopath = os.path.join(self.basepath, 'annoJSONs', splitannofile)
-        self.srcannopath = os.path.join(self.basepath, 'annoJSONs', srcannofile)
+        self.imgpath = basepath
+        self.respath = resfile
+        self.splitannopath = splitannofile
+        self.srcannopath = srcannofile
+        #self.imgpath = os.path.join(self.basepath, 'PANDA_IMAGE')
+        #self.respath = os.path.join(self.basepath, 'resJSONs', resfile)
+        #self.splitannopath = os.path.join(self.basepath, 'annoJSONs', splitannofile)
+        #self.srcannopath = os.path.join(self.basepath, 'annoJSONs', srcannofile)
         self.imagepaths = util.GetFileFromThisRootDir(self.imgpath, ext='jpg')
         if not os.path.exists(self.outpath):
             os.makedirs(self.outpath)
@@ -60,7 +64,10 @@ class DetResMerge():
         indexedresults = defaultdict(list)
         for (filename, annodict) in splitanno.items():
             imageid = annodict['image id']
+            print(imageid, filename, annodict)
             for resdict in reslist:
+                print(resdict)
+                print(type(resdict))
                 resimageid = resdict['image_id']
                 if resimageid == imageid:
                     indexedresults[filename].append(resdict)
