@@ -28,12 +28,15 @@ class PANDA_IMAGE:
         assert annomode in IMAGE_ANNO_MODE, 'Annotation mode must be \'person\', \'vehicle\', \'person&vehicle\', \'headbox\' or \'headpoint\''
         self.annomode = annomode
         self.basepath = basepath
-        self.annofile = annofile
+        self.annopath = annofile
         self.extraannofile = extraannofile
         self.showwidth = showwidth
-        self.imagepath = os.path.join(basepath, 'image_test')
-        self.annopath = os.path.join(basepath, 'image_annos', annofile)
-        self.extraannopath = os.path.join(basepath, 'image_annos', extraannofile)
+        self.imagepath = basepath
+        self.annopath = annofile
+        #self.imagepath = os.path.join(basepath, 'image_test')
+        #self.annopath = os.path.join(basepath, 'image_annos', annofile)
+        if self.extraannofile:
+            self.extraannopath = os.path.join(basepath, 'image_annos', extraannofile)
         self.imgpaths = util.GetFileFromThisRootDir(self.imagepath, ext='jpg')
         self.annos = defaultdict(list)
         self.extraannos = defaultdict(list)
