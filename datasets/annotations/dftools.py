@@ -276,16 +276,15 @@ def dump_coco(df, path):
   category_id = 1
   image = {}
 
-  has_landmark = Fields.landmarks in df.columns
-  print('has_landmark:', has_landmark)
-
-  def _convert_landmark_format(landmark):
-    # [x,y,x,y ...] -> [x,y,v,x,y,v ...]
-    pass
+  num_empty_annotation = 0
 
   print('Start processing {}...'.format(path))
   for name in list(df.file_name.values):
     sample = df[df.file_name == name]
+    if not sample.bboxes.values:
+      num_empty_annotation += 1
+      print('{} has no annotation, skip'.format(name))
+      continue
     image_info = {
       'file_name': name,
       'height': int(sample.height.values[0]),
@@ -294,7 +293,6 @@ def dump_coco(df, path):
     }
     json_dict['images'].append(image_info)
     for bboxes in list(sample.bboxes.values):
-      # TODO: check bounding boxes
       if not isinstance(bboxes[0], list):
         bboxes = [bboxes]
       # TODO: Add landmarks if exists, and add visibility
@@ -314,6 +312,7 @@ def dump_coco(df, path):
         json_dict['annotations'].append(annotation)
         bbox_id += 1
     image_id += 1
+  print('There are {} images with no annotations'.format(num_empty_annotation))
   with open(path, 'w') as json_fp:
       json_str = json.dumps(json_dict)
       json_fp.write(json_str)
