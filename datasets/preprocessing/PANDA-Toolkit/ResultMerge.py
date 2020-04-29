@@ -64,10 +64,7 @@ class DetResMerge():
         indexedresults = defaultdict(list)
         for (filename, annodict) in splitanno.items():
             imageid = annodict['image id']
-            print(imageid, filename, annodict)
             for resdict in reslist:
-                print(resdict)
-                print(type(resdict))
                 resimageid = resdict['image_id']
                 if resimageid == imageid:
                     indexedresults[filename].append(resdict)
