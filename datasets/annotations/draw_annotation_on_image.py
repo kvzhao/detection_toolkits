@@ -26,6 +26,9 @@ def main(args):
 
         annotations = cocoGt.loadAnns(cocoGt.getAnnIds(image_id))
 
+        if not annotations:
+            continue
+
         gt_bboxes = []
         gt_labels = []
 
