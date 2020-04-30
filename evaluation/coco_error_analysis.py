@@ -125,7 +125,7 @@ def analyze_results(res_file, ann_file, res_types, out_dir):
             copy.deepcopy(cocoGt), copy.deepcopy(cocoDt), iou_type)
         cocoEval.params.imgIds = imgIds
         cocoEval.params.iouThrs = [.75, .5, .1]
-        cocoEval.params.maxDets = [100]
+        cocoEval.params.maxDets = [500]
         cocoEval.evaluate()
         cocoEval.accumulate()
         #cocoEval.summarize()
