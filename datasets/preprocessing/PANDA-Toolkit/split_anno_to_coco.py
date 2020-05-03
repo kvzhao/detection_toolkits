@@ -51,7 +51,6 @@ def RectDict2List(rectdict, imgwidth, imgheight, scale, mode='tlbr'):
         return xmin, ymin, xmax - xmin, ymax - ymin
 
 def main(args):
-    image_root = args.image_dir
     output_dir = args.output_dir
     split_file_path = args.split_file_path
 
@@ -78,11 +77,25 @@ def main(args):
     bbox_id = 1
     ignore = 0 
 
+    single_image_ids = {}
+    scene_ids = {}
+    # per splitted image
+    # TODO: Aggregate same large image or same scenario
     for imagename, imagedict in split.items():
         imgwidth = imagedict['image size']['width']
         imgheight = imagedict['image size']['height']
         image_id = imagedict['image id']
         scale = 1.0
+
+        srcfile, paras = imagename.split('___')
+        #srcfile = srcfile.replace('_IMG', '/IMG') + '.jpg'
+        scenename = srcfile.split('_IMG')[0]
+
+        if srcfile not in single_image_ids:
+            single_image_ids[srcfile] = []
+        if scenename not in scene_ids:
+            scene_ids[scenename] = []
+
         #scale = showwidth / imgwidth
         image_info = {
             'file_name': imagename,
@@ -92,11 +105,14 @@ def main(args):
         }
         json_dict['images'].append(image_info)
 
+        single_image_ids[srcfile].append(image_id)
+        scene_ids[scenename].append(image_id)
+
+        # per annotation
         for object_dict in imagedict['objects list']:
             objcate = object_dict['category']
             if objcate == 'person':
                 #personpose = object_dict['riding type'] if object_dict['pose'] == 'riding' else object_dict['pose']
-
                 if 'fbox' in anno_types:
                     fullrect = RectDict2List(object_dict['rects']['full body'], imgwidth, imgheight, scale, 'tlwh')
                     annotation = {
@@ -146,13 +162,48 @@ def main(args):
     with open(output_path, 'w') as json_fp:
         json_str = json.dumps(json_dict)
         json_fp.write(json_str)
-    print('Done, save to {}'.format(output_path)
+    print('Done, save to {}'.format(output_path))
+
+    # seperate into scenes and single images
+    coco = COCO(output_path)
+    scene_output_path = join(output_dir, 'scenes')
+    single_img_output_path = join(output_dir, 'single_images')
+    os.makedirs(scene_output_path, exist_ok=True)
+    os.makedirs(single_img_output_path, exist_ok=True)
+
+    for name, ids in scene_ids.items():
+        imgInfo = coco.loadImgs(ids)
+        annoInfo = coco.loadAnns(coco.getAnnIds(ids))
+        catInfo = coco.loadCats(coco.getCatIds(ids))
+        json_dict = {
+            'images': imgInfo,
+            'annotations': annoInfo,
+            'categories': catInfo,
+        }
+        output_path = join(scene_output_path, name) + '.json'
+        with open(output_path, 'w') as json_fp:
+            json_str = json.dumps(json_dict)
+            json_fp.write(json_str)
+
+    for name, ids in single_image_ids.items():
+        imgInfo = coco.loadImgs(ids)
+        annoInfo = coco.loadAnns(coco.getAnnIds(ids))
+        catInfo = coco.loadCats(coco.getCatIds(ids))
+        json_dict = {
+            'images': imgInfo,
+            'annotations': annoInfo,
+            'categories': catInfo,
+        }
+        output_path = join(single_img_output_path, name) + '.json'
+        with open(output_path, 'w') as json_fp:
+            json_str = json.dumps(json_dict)
+            json_fp.write(json_str)
+    print('Done.')
 
 if __name__ == '__main__':
 
     import argparse
     parser = argparse.ArgumentParser(description='Convert split.json to coco annotation format.')
-    parser.add_argument('-id', '--image_dir', type=str, default=None, help='')
     parser.add_argument('-od', '--output_dir', type=str, default=None, help='')
     parser.add_argument('-sp', '--split_file_path', type=str, default=None, help='')
     parser.add_argument('-at', '--selected_annotation_types', type=str, nargs='+', default=['fbox'],
