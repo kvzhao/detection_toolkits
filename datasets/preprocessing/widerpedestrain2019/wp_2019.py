@@ -11,15 +11,8 @@ python .\mot20det.py -d C:\works -o ./
 [!]One img seems corrupt : sur0395.jpg
 [*]In this dataset there is not different between walker and rider.
 '''
-# 
 
-label_map = {
-    1: 'pedestrians',
-    2: 'riders',
-    3: 'partially-visible persons',
-    4: 'ignore regions',
-    5: 'crow',
-}
+
 agnostic_label_map = {
     1: 'person',
 }
@@ -39,7 +32,7 @@ def read_file(annpath,txtname,bboxes):
         for x in range(len(elemnets)//4):
             xmin,ymin,w,h = elemnets[x*4:x*4+4]
             bboxes[fname].append((xmin,ymin,w,h,ignore_))
-        #exit()
+
             
     return bboxes
 
