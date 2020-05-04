@@ -174,7 +174,13 @@ def main(args):
     for name, ids in scene_ids.items():
         imgInfo = coco.loadImgs(ids)
         annoInfo = coco.loadAnns(coco.getAnnIds(ids))
-        catInfo = coco.loadCats(coco.getCatIds(ids))
+        catInfo = [
+            {
+            'supercategory': 'person',
+            'id': CATEGORY[CATMAP[anno]],
+            'name': CATMAP[anno],
+            } for anno in anno_types
+        ]
         json_dict = {
             'images': imgInfo,
             'annotations': annoInfo,
@@ -188,7 +194,13 @@ def main(args):
     for name, ids in single_image_ids.items():
         imgInfo = coco.loadImgs(ids)
         annoInfo = coco.loadAnns(coco.getAnnIds(ids))
-        catInfo = coco.loadCats(coco.getCatIds(ids))
+        catInfo = [
+            {
+            'supercategory': 'person',
+            'id': CATEGORY[CATMAP[anno]],
+            'name': CATMAP[anno],
+            } for anno in anno_types
+        ]
         json_dict = {
             'images': imgInfo,
             'annotations': annoInfo,
