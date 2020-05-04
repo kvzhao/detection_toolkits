@@ -14,7 +14,6 @@ python .\hollywoodhead.py -d C:\works -o C:\works
 agnostic_label_map = {
     1: 'head',
 }
-headcount = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 def read_a_xml(xml,boxes_wh):
     tree = ET.parse(xml)
     root = tree.getroot()
@@ -25,11 +24,8 @@ def read_a_xml(xml,boxes_wh):
     if fname not in boxes_wh.keys():
         boxes_wh[fname] = ((w,h),[])
 
-    #print(fname)
-    headcount[len(root.findall('object'))]+=1
     for obj in root.findall('object'):
         if obj.find('name') is None:
-            headcount[len(root.findall('object'))]-=1
             continue
         name_class = obj.find('name').text
         bndbox = obj.find('bndbox')
