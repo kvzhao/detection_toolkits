@@ -12,6 +12,11 @@ CATID = {
     3: 'hbox',
 }
 
+def tlbr2tlwh(rect):
+    xmin, ymin, xmax, ymax = rect
+    w, h = xmax - xmin, ymax - ymin
+    return [xmin, ymin, w, h]
+
 def recttransfer(rect, scale, left, up):
     xmin, ymin, w, h = rect
     xmax, ymax = xmin + w, ymin + h
@@ -51,6 +56,7 @@ def py_cpu_nms(dets, thresh):
 
 def main(args):
 
+    # TODO: Use coco annotation rather than original
     srcannopath = args.src_annotation_path
     split_annotation_path = args.split_annotation_path
     detection_result_path = args.detection_result_path
@@ -121,18 +127,30 @@ def main(args):
     }
 
     catset = set()
+    savelist = []
+    bbox_id = 0
     for (imageid, objlist) in mergedresults.items():
         json_dict['images'].append(
             mergedinfos[imageid]
         )
         for obj in objlist:
+            bbox = tlbr2tlwh(obj[:4])
             det = {
                 "image_id": imageid,
                 "category_id": obj[5],
-                "bbox": obj[:4],
+                "bbox": bbox,
                 "score": obj[4]
             }
+            savelist.append(det)
+            det.update({
+                'area': bbox[2] * bbox[3],
+                'iscrowd': 0,
+                'ignore': 0,
+                'segmentation': [],
+                'id': bbox_id,
+            })
             json_dict['annotations'].append(det)
+            bbox_id += 1
             catset.add(obj[5])
     for cat in catset:
         json_dict['categories'].append({
@@ -149,7 +167,7 @@ def main(args):
 
     output_path = os.path.join(output_dir, 'detres.json')
     with open(output_path, 'w') as json_fp:
-        json_str = json.dumps(json_dict['annotations'])
+        json_str = json.dumps(savelist)
         json_fp.write(json_str)
     print('Done, save to {}'.format(output_path))
 
