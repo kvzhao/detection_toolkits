@@ -21,7 +21,10 @@ def main(args):
     for _, row in df.iterrows():
         file_name = row['file_name']
         Id = file_name.rstrip('.jpg')
-        bboxes = row['bboxes']
+        if args.annotation_type == 'dtboxes':
+            bboxes = row['dt_bboxes']
+        elif args.annotation_type == 'gtboxes':
+            bboxes = row['bboxes']
         scores = row.get('score', [1.0] * len(bboxes))
         bboxlist = []
         for bbox, score in zip(bboxes, scores):
