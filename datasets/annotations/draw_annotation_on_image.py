@@ -34,10 +34,11 @@ def main(args):
 
         for anno in annotations:
             bbox = anno['bbox']
+            score = anno.get('score', 1.0)
             x, y, w, h = bbox
             category_id = anno.get('category_id', 1)
             gt_bboxes.append(
-                [x, y, x + w, y + h]
+                [x, y, x + w, y + h, score]
             )
             gt_labels.append(category_id)
 
