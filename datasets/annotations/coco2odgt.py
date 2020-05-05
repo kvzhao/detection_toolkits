@@ -25,7 +25,7 @@ def main(args):
             bboxes = row['dt_bboxes']
         elif args.annotation_type == 'gtboxes':
             bboxes = row['bboxes']
-        scores = row.get('score', [1.0] * len(bboxes))
+        scores = row.get('dt_scores', [1.0] * len(bboxes))
         bboxlist = []
         for bbox, score in zip(bboxes, scores):
             bboxlist.append({
