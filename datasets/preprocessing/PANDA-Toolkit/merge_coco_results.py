@@ -135,6 +135,11 @@ def main(args):
         )
         for obj in objlist:
             bbox = tlbr2tlwh(obj[:4])
+            # Ignore aspect ratio exceed ?
+            _, _, w, h = bbox
+            aspect_ratio = h / (w + 1e-6)
+            if aspect_ratio > args.bbox_aspect_thresh:
+                continue
             det = {
                 "image_id": imageid,
                 "category_id": obj[5],
@@ -180,5 +185,6 @@ if __name__ == '__main__':
     parser.add_argument('-od', '--output_dir', type=str, default=None, help='')
     parser.add_argument('--use_nms', action='store_true', help='')
     parser.add_argument('--nms_thresh', type=float, default=0.5)
+    parser.add_argument('--bbox_aspect_thresh', type=float, default=3.0)
     args = parser.parse_args()
     main(args)
