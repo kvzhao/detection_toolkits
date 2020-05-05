@@ -137,7 +137,7 @@ def main(args):
             bbox = tlbr2tlwh(obj[:4])
             # Ignore aspect ratio exceed ?
             _, _, w, h = bbox
-            aspect_ratio = w / (h + 1e-6)
+            aspect_ratio = h / (w + 1e-6)
             if aspect_ratio > args.bbox_aspect_thresh:
                 continue
             det = {
