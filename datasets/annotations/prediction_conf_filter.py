@@ -14,6 +14,7 @@ def main(args):
     }
 
     bbox_id = 0
+    num_skip = 0
     for img_info in coco.loadImgs(coco.getImgIds()):
         anns = coco.loadAnns(coco.getAnnIds(img_info['id']))
         json_dict['images'].append(
@@ -26,7 +27,7 @@ def main(args):
         )
         for ann in anns:
             if ann.get('score', 1.0) < args.conf:
-                print('Skip {}'.format(ann))
+                num_skip += 1
                 continue
             json_dict['annotations'].append(
                 {
@@ -40,7 +41,9 @@ def main(args):
                     'segmentation': ann['segmentation']
                 }
             )
+            bbox_id += 1
 
+    print('Skip {} annotations with confidence lower than {}'.format(num_skip, args.conf))
     with open(args.output_path, 'w') as json_fp:
         json_str = json.dumps(json_dict)
         json_fp.write(json_str)
