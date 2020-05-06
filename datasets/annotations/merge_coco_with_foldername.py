@@ -10,9 +10,15 @@ def main(args):
     srcGt = COCO(args.source_annotation_path)
     dstGt = COCO(args.destination_annotation_path)
     src_imgdir = args.source_image_dir
-    src_imgdir_name = os.path.basename(src_imgdir)
+    if src_imgdir:
+        src_imgdir_name = os.path.basename(src_imgdir)
+    else:
+        src_imgdir_name = ''
     dst_imgdir = args.destination_image_dir
-    dst_imgdir_name = os.path.basename(dst_imgdir)
+    if dst_imgdir:
+        dst_imgdir_name = os.path.basename(dst_imgdir)
+    else:
+        dst_imgdir_name = ''
 
     json_dict = {
         'images': [],
@@ -39,10 +45,10 @@ def main(args):
     print(last_src_image_id, last_src_ann_id)
 
     # add folder name to file_name
-    for imginfo in srcImgInfo:
-        imginfo['file_name'] = os.path.join(
-            src_imgdir_name, imginfo['file_name']
-        )
+    if src_imgdir_name:
+        for imginfo in srcImgInfo:
+            imginfo['file_name'] = os.path.join(
+                src_imgdir_name, imginfo['file_name'])
 
     json_dict['images'].extend(srcImgInfo)
     json_dict['annotations'].extend(srcAnnInfo)
@@ -52,11 +58,13 @@ def main(args):
     new_ann_id = last_src_ann_id + 1
     for dst_img in dstGt.loadImgs(dstGt.getImgIds()):
         dst_anns = dstGt.loadAnns(dstGt.getAnnIds(dst_img['id']))
-        print(dst_img)
-        print(dst_anns)
+        if dst_imgdir_name:
+            file_name = os.path.join(dst_imgdir_name, dst_img['file_name'])
+        else:
+            file_name = dst_img['file_name']
         json_dict['images'].append(
             {
-                'file_name': os.path.join(dst_imgdir_name, dst_img['file_name']),
+                'file_name': file_name,
                 'height': dst_img['height'],
                 'width': dst_img['width'],
                 'id': new_image_id,
