@@ -103,7 +103,7 @@ def main(args):
         json_dict['images'].append(image_info)
 
         # per annotation
-        for object_dict in imagedict['objects list']:
+        for object_dict in imagedict.get('objects list', []):
             objcate = object_dict['category']
             if objcate == 'person':
                 #personpose = object_dict['riding type'] if object_dict['pose'] == 'riding' else object_dict['pose']
