@@ -62,7 +62,7 @@ def main(args):
         'categories': [],
     }
 
-    image_id = 0
+    split_image_id = 0
     for image_name, imagedict in panda_annos.items():
         imgwidth = imagedict['image size']['width']
         imgheight = imagedict['image size']['height']
@@ -104,10 +104,10 @@ def main(args):
                         'file_name': subimgname,
                         'height': down - up + 1,
                         'width': right - left + 1,
-                        'id': image_id,
+                        'id': split_image_id,
                     }
                     json_dict['images'].append(image_info)
-                    image_id += 1
+                    split_image_id += 1
                     # TODO: Directly save as coco format
                     subimageannos[subimgname] = {
                         "image size": {
