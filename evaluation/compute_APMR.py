@@ -14,8 +14,9 @@ def compute_APMR(gt_path, dt_path, target_key=None, mode=0):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Analyze a json result file with iou match')
     parser.add_argument('-dt', '--detfile', required=True, help='path of json result file to load')
-    parser.add_argument('-gt', '--gtfile', required=True, help='path of json result file to load')
-    parser.add_argument('--target_key', default=None, required=True)
+    parser.add_argument('-gt', '--gtfile', default='/home/kv_zhao/datasets/CrowdHuman/annotation_val.odgt',
+        help='path of json result file to load')
+    parser.add_argument('--target_key', default='fbox')
     args = parser.parse_args()
     compute_APMR(
         args.gtfile, args.detfile, args.target_key, 0)
