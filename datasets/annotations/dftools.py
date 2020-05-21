@@ -168,9 +168,9 @@ def convert_labelme_to_coco(input_dir, output_path):
       'annotations': [],
       'categories': [
         {
-          'supercategory': 'face',
+          'supercategory': 'person',
           'id': 1,
-          'name': 'face',
+          'name': 'person',
         }
       ],
   }
