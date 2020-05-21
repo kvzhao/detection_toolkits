@@ -33,32 +33,43 @@ def main(args):
     srcImgInfo = srcGt.loadImgs(srcGt.getImgIds())
     srcAnnInfo = srcGt.loadAnns(srcGt.getAnnIds(srcGt.getImgIds()))
     srcCatInfo = srcGt.loadCats(srcGt.getCatIds())
-    dstCatInfo = dstGt.loadCats(dstGt.getCatIds())
+    #dstCatInfo = dstGt.loadCats(dstGt.getCatIds())
     # TODO check both cat are same
-
-    print(len(srcImgInfo), len(srcAnnInfo))
-    print(type(srcImgInfo), type(srcAnnInfo))
 
     last_src_image_id = max(srcids)
     last_src_ann_id = max(srcannids)
 
-    print(last_src_image_id, last_src_ann_id)
-
     # add folder name to file_name
-    if src_imgdir_name:
-        for imginfo in srcImgInfo:
-            imginfo['file_name'] = os.path.join(
-                src_imgdir_name, imginfo['file_name'])
 
-    json_dict['images'].extend(srcImgInfo)
-    json_dict['annotations'].extend(srcAnnInfo)
+    for src_img in srcGt.loadImgs(srcGt.getImgIds()):
+        src_anns = srcGt.loadAnns(srcGt.getAnnIds(src_img['id']))
+        if src_imgdir:
+            file_name = os.path.join(src_imgdir_name, src_img['file_name'])
+        else:
+            file_name = src_img['file_name']
+
+        json_dict['images'].append({
+            'file_name': file_name,
+            'id': src_img['id'],
+            'width': src_img['width'],
+            'height': src_img['height']
+        })
+        json_dict['annotations'].extend(src_anns)
+
+    if args.only_source:
+        with open(args.output_path, 'w') as json_fp:
+            json_str = json.dumps(json_dict)
+            json_fp.write(json_str)
+        print('Done, save to {}'.format(args.output_path))
+
+        return
 
     # Append new
     new_image_id = last_src_image_id + 1
     new_ann_id = last_src_ann_id + 1
     for dst_img in dstGt.loadImgs(dstGt.getImgIds()):
         dst_anns = dstGt.loadAnns(dstGt.getAnnIds(dst_img['id']))
-        if dst_imgdir_name:
+        if dst_imgdir:
             file_name = os.path.join(dst_imgdir_name, dst_img['file_name'])
         else:
             file_name = dst_img['file_name']
@@ -101,5 +112,6 @@ if __name__ == '__main__':
     parser.add_argument('-dst', '--destination_annotation_path', type=str, default=None)
     parser.add_argument('-dstid', '--destination_image_dir', type=str, default=None)
     parser.add_argument('-o', '--output_path', type=str, default=None)
+    parser.add_argument('--only_source', action='store_true')
     args = parser.parse_args()
     main(args)

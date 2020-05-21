@@ -58,10 +58,19 @@ def main(args):
     panda_annotation_path = args.panda_annotation_path
 
     anno_types = args.selected_annotation_types
+    vehicle_annotation_path = args.panda_vehicle_annotation_path
 
     print(anno_types)
 
     panda_annos = load_json(panda_annotation_path)
+
+    vehicle_annos = None
+    if vehicle_annotation_path is not None:
+        vehicle_annos = load_json(vehicle_annotation_path)
+
+    if 'vehicle' in anno_types and vehicle_annos is None:
+        print('-vgt should be provided.')
+        return
 
     os.makedirs(output_dir, exist_ok=True)
 
@@ -152,6 +161,26 @@ def main(args):
                     json_dict['annotations'].append(annotation)
                     bbox_id += 1
 
+        if 'vehicle' in anno_types:
+            if imagename in vehicle_annos:
+                vehicle_annos = vehicle_annos[imagename].get('objects list', [])
+                for anno in vehicle_annos:
+                    #if anno['category'] != 'vehicles':
+                    #    continue
+                    vehiclerect = RectDict2List(anno['rect'], imgwidth, imgheight, scale, 'tlwh')
+                    annotation = {
+                            'area': vehiclerect[2] * vehiclerect[3],
+                            'iscrowd': ignore,
+                            'image_id': image_id,
+                            'bbox': vehiclerect,
+                            'category_id': CATEGORY[CATMAP['vehicle']],
+                            'id': bbox_id,
+                            'ignore': ignore,
+                            'segmentation': [],
+                    }
+                    json_dict['annotations'].append(annotation)
+                    bbox_id += 1
+
     output_path = join(output_dir, 'coco_anno.json')
     with open(output_path, 'w') as json_fp:
         json_str = json.dumps(json_dict)
@@ -191,6 +220,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Convert split.json to coco annotation format.')
     parser.add_argument('-od', '--output_dir', type=str, default=None, help='')
     parser.add_argument('-gt', '--panda_annotation_path', type=str, default=None, help='')
+    parser.add_argument('-vgt', '--panda_vehicle_annotation_path', type=str, default=None, help='')
     parser.add_argument('-at', '--selected_annotation_types', type=str, nargs='+', default=['fbox'],
         help='Choose annotation to export: fbox, vbox, hbox, vehicle')
     args = parser.parse_args()

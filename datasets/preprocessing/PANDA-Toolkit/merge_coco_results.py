@@ -180,7 +180,8 @@ if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description='Process some integers.')
     parser.add_argument('-sp', '--split_annotation_path', type=str, default=None, help='Input COCO file')
-    parser.add_argument('-gt', '--src_annotation_path', type=str, default=None, help='PANDA Original Annotation')
+    parser.add_argument('-gt', '--src_annotation_path', type=str,
+        default='/home/kv_zhao/datasets/panda/annoJSONs/person_bbox_test.json', help='PANDA Original Annotation')
     parser.add_argument('-dt', '--detection_result_path', type=str, default=None, help='Detectuin results json')
     parser.add_argument('-od', '--output_dir', type=str, default=None, help='')
     parser.add_argument('--use_nms', action='store_true', help='')
