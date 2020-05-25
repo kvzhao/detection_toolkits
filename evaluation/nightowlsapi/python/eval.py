@@ -38,7 +38,8 @@ def main(args):
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('-gt', '--groundtruth_jsonfile_path', type=str, default=None)
+    parser.add_argument('-gt', '--groundtruth_jsonfile_path',
+        type=str, default='/home/kv_zhao/datasets/NightOwl/annotations/nightowls_validation.json')
     parser.add_argument('-dt', '--detection_jsonfile_path', type=str, default=None)
     parser.add_argument('-od', '--output_dir', type=str, default=None)
     args = parser.parse_args()
