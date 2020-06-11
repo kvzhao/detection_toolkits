@@ -27,7 +27,7 @@ def main(args):
 
         json_dict['images'].append(img_info)
         anno_info = gt.loadAnns(gt.getAnnIds(img_id))
-        json_dict['annotations'].extend(json_dict)
+        json_dict['annotations'].extend(anno_info)
 
     with open(args.output_file, 'w') as fp:
         json_str = json.dumps(json_dict)
