@@ -13,8 +13,9 @@ labelname_map = {
     1: 'vbox',
     2: 'fbox',
     3: 'hbox',
+    4: 'vehicle',
 }
-label_names = ['__background__', 'vbox', 'fbox', 'hbox']
+label_names = ['__background__', 'vbox', 'fbox', 'hbox', 'vehicle']
 
 def main(args):
 
@@ -23,9 +24,10 @@ def main(args):
 
     os.makedirs(args.output_dir, exist_ok=True)
 
-    for image_id in tqdm(cocoGt.getImgIds()):
+    for image_id in tqdm(cocoGt.getImgIds()[::30]):
 
         img_file_name = cocoGt.loadImgs(ids=[image_id])[0]['file_name']
+        print(img_file_name)
 
         img_path = join(args.image_dir, img_file_name)
 
@@ -41,7 +43,10 @@ def main(args):
         for anno in annotations:
             bbox = anno['bbox']
             score = anno.get('score', 1.0)
+            if args.visualization_threshold > score:
+                continue
             x, y, w, h = bbox
+            #y, x, w, h = bbox
             category_id = anno.get('category_id', 0)
             gt_bboxes.append(
                 [x, y, x + w, y + h, score]
@@ -71,5 +76,6 @@ if __name__ == '__main__':
     parser.add_argument('-od', '--output_dir', type=str,
         default=None,
         help='Path to output folder')
+    parser.add_argument('-vt', '--visualization_threshold', type=float, default=0.4)
     args = parser.parse_args()
     main(args)

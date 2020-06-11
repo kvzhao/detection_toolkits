@@ -19,5 +19,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-gt', '--groundtruth_jsonfile_path', type=str, default=None)
     parser.add_argument('-od', '--output_dir', type=str, default=None)
+    parser.add_argument('-c', '--confidence_threshold', type=float, default=.6)
     args = parser.parse_args()
     main(args)

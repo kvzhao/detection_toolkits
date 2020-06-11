@@ -11,7 +11,7 @@ def main(args):
     count = 0
     while success:
         #if count % 5 == 0:
-        cv2.imwrite("{}/frame_{count:08}.png".format(args.output_dir, count=count), image)     # save frame as JPEG file      
+        cv2.imwrite("{}/frame_{count:08}.jpg".format(args.output_dir, count=count), image)     # save frame as JPEG file      
         success, image = vidcap.read()
         count +=  1
         if count % 100 == 0:

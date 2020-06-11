@@ -38,7 +38,10 @@ def main(args):
 
                 box_ = xywh_to_xyxy(box['bbox'])
                 box_ = normalize(box_,whs[box['image_id']])
-                imggroups[box['image_id']]['boxes_list'][result_index].append(box_)
+                try:
+                    imggroups[box['image_id']]['boxes_list'][result_index].append(box_)
+                except:
+                    print(box['image_id'], result_file)
                 imggroups[box['image_id']]['scores_list'][result_index].append(box['score'])
                 imggroups[box['image_id']]['labels_list'][result_index].append(args.category_id)
     fusion_result = []

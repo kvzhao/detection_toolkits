@@ -89,6 +89,11 @@ def main(args):
             left, up, right, down = coordinates
 
             subimgname = outbasename + str(left) + '__' + str(up) + '.jpg'
+
+            subimgage_width_ratio = (right - left + 1) / imgwidth
+            subimgage_height_ratio = (down - up + 1) / imgheight
+            print('subimage: {}, width, height ratio: {}, {}'.format(subimgname,
+                subimgage_width_ratio, subimgage_height_ratio))
             # 
             savesubimage(output_image_dir, resizeimg, subimgname, coordinates)
             image_info = {

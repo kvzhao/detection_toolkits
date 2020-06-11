@@ -10,7 +10,6 @@ def load_json(path):
     return jsonfile
 
 
-
 def in_stage_one(img_id):
     if img_id >= 391 and img_id <= 450:
         return True
@@ -18,13 +17,7 @@ def in_stage_one(img_id):
         return True
     else:
         return False
-stage_one = [
-    391,
-    420,
-    450,
-    481,
-    510,
-]
+
 
 def main(args):
     """
@@ -35,7 +28,10 @@ def main(args):
     vbox_detres = load_json(args.vbox_annotation_path)
     fbox_detres = load_json(args.fbox_annotation_path)
     hbox_detres = load_json(args.hbox_annotation_path)
+    if args.vehicle_annotation_path:
+        vehicle_detres = load_json(args.vehicle_annotation_path)
 
+    # TODO: Category id check
     num_vbox = len(vbox_detres)
     vbox_detres = [det for det in vbox_detres if det['score'] > args.vbox_conf]
     print('Remove {} vbox under conf = {}'.format(
@@ -50,8 +46,25 @@ def main(args):
     hbox_detres = [det for det in hbox_detres if det['score'] > args.hbox_conf]
     print('Remove {} hbox under conf = {}'.format(
         num_hbox - len(hbox_detres), args.hbox_conf))
-
+    
+    if args.vehicle_annotation_path:
+        num_box = len(vehicle_detres)
+        refined_vehicle_detres = []
+        # Results from NCTU
+        if True:
+            for det in vehicle_detres:
+                if det['score'] > 0.01:
+                    y, x, w, h = det['bbox']
+                    det['bbox'] = [x, y, w, h]
+                    refined_vehicle_detres.append(det)
+        else:
+            refined_vehicle_detres = [det for det in vehicle_detres if det['score'] > 0.05]
+        print('Remove {} car under conf = 0.01'.format(
+            num_box - len(refined_vehicle_detres)))
+    
     person_detres = vbox_detres + fbox_detres + hbox_detres
+    if args.vehicle_annotation_path:
+        person_detres += refined_vehicle_detres
 
     # TODO: Consistency check
     for det in person_detres:
@@ -85,10 +98,11 @@ if __name__ == '__main__':
     parser.add_argument('-vbox', '--vbox_annotation_path', type=str, default=None, help='')
     parser.add_argument('-fbox', '--fbox_annotation_path', type=str, default=None, help='')
     parser.add_argument('-hbox', '--hbox_annotation_path', type=str, default=None, help='')
+    parser.add_argument('-car', '--vehicle_annotation_path', type=str, default=None, help='')
 
-    parser.add_argument('-vc', '--vbox_conf', type=float, default=.05, help='')
-    parser.add_argument('-fc', '--fbox_conf', type=float, default=.05, help='')
-    parser.add_argument('-hc', '--hbox_conf', type=float, default=.05, help='')
+    parser.add_argument('-vc', '--vbox_conf', type=float, default=.01, help='')
+    parser.add_argument('-fc', '--fbox_conf', type=float, default=.01, help='')
+    parser.add_argument('-hc', '--hbox_conf', type=float, default=.01, help='')
 
     parser.add_argument('-f', '--scenario_filter', action='store_true')
 

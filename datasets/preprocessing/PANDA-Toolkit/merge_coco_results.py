@@ -10,6 +10,7 @@ CATID = {
     1: 'vbox',
     2: 'fbox',
     3: 'hbox',
+    4: 'vehicle',
 }
 
 def tlbr2tlwh(rect):

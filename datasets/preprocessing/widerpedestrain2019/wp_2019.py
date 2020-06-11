@@ -104,11 +104,13 @@ def write_json(args, json_dict, subset = 'train',ignore = False):
                 json_fp.write(json_str)
 
 def main(args):
-    ann_path = join(args.data_root,'WIDER Pedestrian 2019\\trainval\Annotations')
-    sur_path = join(args.data_root,'WIDER Pedestrian 2019\\trainval\sur_train')
-    ad_path = join(args.data_root,'WIDER Pedestrian 2019\\trainval\\ad_train')
-    val_path = join(args.data_root,'WIDER Pedestrian 2019\\trainval\\val_data')
-    
+    ann_path = join(args.data_root, 'trainval/Annotations')
+    sur_path = join(args.data_root, 'trainval/sur_train')
+    ad_path = join(args.data_root, 'trainval/ad_train')
+    val_path = join(args.data_root, 'trainval/val_data')
+
+    if not os.path.exists(args.output_path):
+        os.makedirs(args.output_path)
     
     '''
        Go through bbox.txt and ignore.txt  then write to the json.
