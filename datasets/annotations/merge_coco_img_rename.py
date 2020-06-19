@@ -44,6 +44,9 @@ def main(args):
     os.makedirs(output_img_dir, exist_ok=True)
     os.makedirs(output_ann_dir, exist_ok=True)
 
+
+    dst_anno_id = 0
+
     for img_info in gt1.loadImgs(gt1.getImgIds()):
         anns = gt1.loadAnns(gt1.getAnnIds(img_info['id']))
         dst_img_id = image_id_map['1-{}'.format(img_info['id'])]
@@ -62,7 +65,9 @@ def main(args):
 
         for anno in gt1.loadAnns(gt1.getAnnIds(img_info['id'])):
             anno['image_id'] = dst_img_id
+            anno['id'] = dst_anno_id
             json_dict['annotations'].append(anno)
+            dst_anno_id += 1
 
     for img_info in gt2.loadImgs(gt2.getImgIds()):
         anns = gt2.loadAnns(gt2.getAnnIds(img_info['id']))
@@ -83,7 +88,9 @@ def main(args):
 
         for anno in gt2.loadAnns(gt2.getAnnIds(img_info['id'])):
             anno['image_id'] = dst_img_id
+            anno['id'] = dst_anno_id
             json_dict['annotations'].append(anno)
+            dst_anno_id += 1
 
 
     with open(join(output_ann_dir, 'coco_anno.json'), 'w') as json_fp:
