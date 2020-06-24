@@ -33,8 +33,8 @@ def read_anno_file(filename):
 
 
 def yolo2coco(box, img_w, img_h):
-    x1, y1 = int((box[0] + box[2]/2) * img_w), int((box[1] + box[3]/2) * img_h)
-    x2, y2 = int((box[0] - box[2]/2) * img_w), int((box[1] - box[3]/2) * img_h)
+    x2, y2 = int((box[0] + box[2]/2) * img_w), int((box[1] + box[3]/2) * img_h)
+    x1, y1 = int((box[0] - box[2]/2) * img_w), int((box[1] - box[3]/2) * img_h)
     return [x1, y1, x2 - x1, y2 - y1]
 
 
