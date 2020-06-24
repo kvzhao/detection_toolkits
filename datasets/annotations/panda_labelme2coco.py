@@ -108,7 +108,7 @@ def main(args):
       annotation = {
         'area': w * h,
         'iscrowd': ignore,
-        'image_id': image_id,
+        'image_id': image_file_id,
         'bbox': bbox,
         'category_id': category_id,
         'id': bbox_id,
