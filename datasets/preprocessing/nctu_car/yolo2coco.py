@@ -84,13 +84,6 @@ def main(args):
             bbox = anno['bbox']
 
             # yolo to coco format
-            """
-            y = int(bbox[1] * image_size[0])
-            h = int(bbox[3] * image_size[0])
-            x = int(bbox[0] * image_size[1])
-            w = int(bbox[2] * image_size[1])
-            """
-
             coco_bbox = yolo2coco(bbox, img_width, img_height)
 
             anno_info = {
