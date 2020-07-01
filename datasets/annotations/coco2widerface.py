@@ -40,7 +40,7 @@ def main(args):
 
         preds = Dt.loadAnns(Dt.getAnnIds(img_id))
 
-        bboxes = [p['bbox'] + [p['score']] for p in preds]
+        bboxes = [p['bbox'] + [p['score']] for p in preds if p['score'] > 0.0]
 
         output_folder = join(args.output_dir, folder_name)
 
@@ -52,8 +52,6 @@ def main(args):
         fout.write(str(len(bboxes)) + '\n')
         for bbox in bboxes:
             score = bbox[4]
-            if score == 0.0:
-                continue
             fout.write('%d %d %d %d %.03f' % (math.floor(bbox[0]), math.floor(bbox[1]), math.ceil(bbox[2]), math.ceil(bbox[3]), score if score <= 1 else 1) + '\n')
         fout.close()
 
