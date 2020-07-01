@@ -1,5 +1,0 @@
-*.pth
-*cache*
-.vscode
-*checkpoints*
-demo/demo2.jpg
