@@ -16,22 +16,35 @@ def main(args):
         'annotations': [],
         'categories': gt.loadCats(gt.getCatIds()),
     }
-    image_files = [basename(f) for f in get_files(args.image_dir)]
+
+    num_ignore_images = 0
+    num_ignore_annos = 0
 
     for img_id in gt.getImgIds():
         img_info = gt.loadImgs(img_id)[0]
+        anno_info = gt.loadAnns(gt.getAnnIds(img_id))
 
-        if img_info['file_name'] not in image_files:
-            print(img_info, 'Not Exists, Skip')
+        img_file_name = img_info['file_name']
+        img_file_path = os.path.join(args.image_dir, img_file_name)
+
+        if not os.path.exists(img_file_path):
+            print(img_file_path, 'Not exists')
+            num_ignore_images += 1
+            continue
+
+        if len(anno_info) == 0:
+            num_ignore_annos += 1
             continue
 
         json_dict['images'].append(img_info)
-        anno_info = gt.loadAnns(gt.getAnnIds(img_id))
         json_dict['annotations'].extend(anno_info)
 
     with open(args.output_file, 'w') as fp:
         json_str = json.dumps(json_dict)
         fp.write(json_str)
+
+    print('Remove {} annotations without images, and {} empty annotations'.format(
+        num_ignore_images, num_ignore_annos))
     print('Done, save to', args.output_file)
 
 
