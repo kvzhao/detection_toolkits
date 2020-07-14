@@ -51,15 +51,15 @@ def main(args):
         num_box = len(vehicle_detres)
         refined_vehicle_detres = []
         # Results from NCTU
-        if True:
+        if False:
             for det in vehicle_detres:
-                if det['score'] > 0.01:
+                if det['score'] > 0.005:
                     y, x, w, h = det['bbox']
                     det['bbox'] = [x, y, w, h]
                     refined_vehicle_detres.append(det)
         else:
-            refined_vehicle_detres = [det for det in vehicle_detres if det['score'] > 0.05]
-        print('Remove {} car under conf = 0.01'.format(
+            refined_vehicle_detres = [det for det in vehicle_detres if det['score'] > 0.005]
+        print('Remove {} car under conf = 0.005'.format(
             num_box - len(refined_vehicle_detres)))
     
     person_detres = vbox_detres + fbox_detres + hbox_detres
@@ -100,9 +100,9 @@ if __name__ == '__main__':
     parser.add_argument('-hbox', '--hbox_annotation_path', type=str, default=None, help='')
     parser.add_argument('-car', '--vehicle_annotation_path', type=str, default=None, help='')
 
-    parser.add_argument('-vc', '--vbox_conf', type=float, default=.01, help='')
-    parser.add_argument('-fc', '--fbox_conf', type=float, default=.01, help='')
-    parser.add_argument('-hc', '--hbox_conf', type=float, default=.01, help='')
+    parser.add_argument('-vc', '--vbox_conf', type=float, default=.005, help='')
+    parser.add_argument('-fc', '--fbox_conf', type=float, default=.005, help='')
+    parser.add_argument('-hc', '--hbox_conf', type=float, default=.005, help='')
 
     parser.add_argument('-f', '--scenario_filter', action='store_true')
 
