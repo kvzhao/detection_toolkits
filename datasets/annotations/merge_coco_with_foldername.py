@@ -82,18 +82,34 @@ def main(args):
             }
         )
         for ann in dst_anns:
-            json_dict['annotations'].append(
-                {
-                    'id': new_ann_id,
-                    'image_id': new_image_id,
-                    'category_id': ann['category_id'],
-                    'bbox': ann['bbox'],
-                    'area': ann['area'],
-                    'iscrowd': ann['iscrowd'],
-                    'ignore': ann['ignore'],
-                    'segmentation': ann['segmentation']
-                }
-            )
+            if "lm" in ann:
+                json_dict['annotations'].append(
+                    {
+                        'id': new_ann_id,
+                        'image_id': new_image_id,
+                        'category_id': ann['category_id'],
+                        'bbox': ann['bbox'],
+                        "lm": ann["lm"],
+                        "pos_lm": ann["pos_lm"],
+                        'area': ann['area'],
+                        'iscrowd': ann['iscrowd'],
+                        'ignore': ann['ignore'],
+                        'segmentation': ann['segmentation']
+                    }
+                )
+            else:
+                json_dict['annotations'].append(
+                    {
+                        'id': new_ann_id,
+                        'image_id': new_image_id,
+                        'category_id': ann['category_id'],
+                        'bbox': ann['bbox'],
+                        'area': ann['area'],
+                        'iscrowd': ann['iscrowd'],
+                        'ignore': ann['ignore'],
+                        'segmentation': ann['segmentation']
+                    }
+                )
             new_ann_id += 1
         new_image_id += 1
 
