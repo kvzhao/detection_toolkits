@@ -52,6 +52,9 @@ def main(args):
                 [x, y, x + w, y + h, score]
             )
             gt_labels.append(category_id)
+        if not gt_bboxes:
+            print('No gt boxes')
+            continue
 
         gt_labels = np.asarray(gt_labels)
         gt_bboxes = np.asarray(gt_bboxes)
